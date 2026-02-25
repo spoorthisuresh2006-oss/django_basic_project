@@ -1,0 +1,35 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}{{ action }} Task — Task Cracker{% endblock %}
+
+{% block content %}
+<div class="form-page">
+    <div class="form-card">
+        <h2 class="form-title">
+            {% if action == 'Create' %}🆕 New Task{% else %}✏️ Edit Task{% endif %}
+        </h2>
+        <form method="post" id="task-form">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="form-group">
+                <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <div class="form-error">
+                    {% for error in field.errors %}
+                    <span>{{ error }}</span>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+            {% endfor %}
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary btn-glow" id="submit-task">
+                    {% if action == 'Create' %}🚀 Create Task{% else %}💾 Save Changes{% endif %}
+                </button>
+                <a href="{% url 'task_list' %}" class="btn btn-secondary" id="cancel-task">Cancel</a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

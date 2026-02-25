@@ -1,0 +1,88 @@
+{% extends 'tasks/base.html' %}
+
+{% block title %}Dashboard — Task Cracker{% endblock %}
+
+{% block content %}
+<!-- Stats Row -->
+<div class="stats-row">
+    <div class="stat-card" id="stat-total">
+        <div class="stat-number">{{ total }}</div>
+        <div class="stat-label">Total</div>
+    </div>
+    <div class="stat-card stat-pending" id="stat-pending">
+        <div class="stat-number">{{ pending }}</div>
+        <div class="stat-label">Pending</div>
+    </div>
+    <div class="stat-card stat-progress" id="stat-progress">
+        <div class="stat-number">{{ in_progress }}</div>
+        <div class="stat-label">In Progress</div>
+    </div>
+    <div class="stat-card stat-completed" id="stat-completed">
+        <div class="stat-number">{{ completed }}</div>
+        <div class="stat-label">Completed</div>
+    </div>
+</div>
+
+<!-- Filters -->
+<div class="filters-bar">
+    <span class="filters-label">Filter:</span>
+    <a href="{% url 'task_list' %}"
+        class="filter-chip {% if not filter_status and not filter_priority %}active{% endif %}">All</a>
+    <a href="?status=pending" class="filter-chip {% if filter_status == 'pending' %}active{% endif %}">Pending</a>
+    <a href="?status=in_progress" class="filter-chip {% if filter_status == 'in_progress' %}active{% endif %}">In
+        Progress</a>
+    <a href="?status=completed" class="filter-chip {% if filter_status == 'completed' %}active{% endif %}">Completed</a>
+    <span class="filter-divider">|</span>
+    <a href="?priority=high" class="filter-chip {% if filter_priority == 'high' %}active{% endif %}">🔴 High</a>
+    <a href="?priority=medium" class="filter-chip {% if filter_priority == 'medium' %}active{% endif %}">🟡 Medium</a>
+    <a href="?priority=low" class="filter-chip {% if filter_priority == 'low' %}active{% endif %}">🟢 Low</a>
+</div>
+
+<!-- Task List -->
+{% if tasks %}
+<div class="task-grid">
+    {% for task in tasks %}
+    <div class="task-card {% if task.status == 'completed' %}task-done{% endif %} {% if task.is_overdue %}task-overdue{% endif %}"
+        id="task-{{ task.pk }}">
+        <div class="task-header">
+            <span class="priority-badge priority-{{ task.priority }}">{{ task.get_priority_display }}</span>
+            <span class="status-pill status-{{ task.status }}">{{ task.get_status_display }}</span>
+        </div>
+        <h3 class="task-title">{{ task.title }}</h3>
+        {% if task.description %}
+        <p class="task-desc">{{ task.description|truncatewords:25 }}</p>
+        {% endif %}
+        <div class="task-meta">
+            {% if task.due_date %}
+            <span class="due-chip {% if task.is_overdue %}overdue{% endif %}">
+                📅 {{ task.due_date|date:"M d, Y" }}
+                {% if task.is_overdue %}<span class="overdue-tag">OVERDUE</span>{% endif %}
+            </span>
+            {% endif %}
+        </div>
+        <div class="task-actions">
+            <form method="post" action="{% url 'task_toggle' task.pk %}" class="inline-form">
+                {% csrf_token %}
+                <button type="submit"
+                    class="btn btn-sm {% if task.status == 'completed' %}btn-undo{% else %}btn-complete{% endif %}"
+                    id="toggle-{{ task.pk }}">
+                    {% if task.status == 'completed' %}↩ Undo{% else %}✓ Done{% endif %}
+                </button>
+            </form>
+            <a href="{% url 'task_edit' task.pk %}" class="btn btn-sm btn-edit" id="edit-{{ task.pk }}">✏️ Edit</a>
+            <a href="{% url 'task_delete' task.pk %}" class="btn btn-sm btn-delete" id="delete-{{ task.pk }}">🗑
+                Delete</a>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <div class="empty-icon">🚀</div>
+    <h2>No tasks yet!</h2>
+    <p>Start cracking your tasks by creating one.</p>
+    <a href="{% url 'task_create' %}" class="btn btn-primary btn-glow" id="empty-create-task">+ Create Your First
+        Task</a>
+</div>
+{% endif %}
+{% endblock %}
